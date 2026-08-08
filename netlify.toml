@@ -1,5 +1,10 @@
 [build]
+  command = "npm install"
+  publish = "public"
   functions = "src/handlers"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/api/scrape/*"
