@@ -1,6 +1,6 @@
 /**
  * Serverless-optimized Puppeteer / Chromium helper for Javascript-heavy or Cloudflare-protected sites.
- * Uses dynamic imports so Node CLI dependencies (yargs/puppeteer) are lazy-loaded only when required.
+ * Uses dynamic imports so AWS Lambda Chromium binaries are only loaded when available.
  */
 class HeadlessBrowserManager {
   constructor() {
@@ -15,15 +15,22 @@ class HeadlessBrowserManager {
       return this.browser;
     }
 
-    const chromiumModule = await import('@sparticuz/chromium').catch(() => null);
-    const puppeteerModule = await import('puppeteer-core').catch(() => null);
+    let chromiumModule = null;
+    let puppeteerModule = null;
 
-    if (!puppeteerModule) {
-      throw new Error('Puppeteer is not available in the current runtime environment.');
+    try {
+      chromiumModule = await import('@sparticuz/chromium');
+      puppeteerModule = await import('puppeteer-core');
+    } catch (e) {
+      throw new Error('Headless browser capabilities are omitted in Edge environments.');
     }
 
-    const chromium = chromiumModule?.default || chromiumModule;
-    const puppeteer = puppeteerModule?.default || puppeteerModule;
+    if (!puppeteerModule || !chromiumModule) {
+      throw new Error('Puppeteer core modules are not available.');
+    }
+
+    const chromium = chromiumModule.default || chromiumModule;
+    const puppeteer = puppeteerModule.default || puppeteerModule;
 
     const isLambda = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 
@@ -57,30 +64,34 @@ class HeadlessBrowserManager {
    * Open a target page, set stealth headers, execute page parsing, and clean up memory.
    */
   async executePageTask(url, parserFn) {
-    const browser = await this.getBrowser();
-    const page = await browser.newPage();
-
     try {
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
-      await page.setViewport({ width: 1280, height: 800 });
+      const browser = await this.getBrowser();
+      const page = await browser.newPage();
 
-      await page.setRequestInterception(true);
-      page.on('request', (req) => {
-        const resourceType = req.resourceType();
-        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
-          req.abort();
-        } else {
-          req.continue();
+      try {
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
+        await page.setViewport({ width: 1280, height: 800 });
+
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+          const resourceType = req.resourceType();
+          if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+            req.abort();
+          } else {
+            req.continue();
+          }
+        });
+
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        const result = await parserFn(page);
+        return result;
+      } finally {
+        if (page && !page.isClosed()) {
+          await page.close();
         }
-      });
-
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-      const result = await parserFn(page);
-      return result;
-    } finally {
-      if (page && !page.isClosed()) {
-        await page.close();
       }
+    } catch (e) {
+      return [];
     }
   }
 
@@ -89,7 +100,7 @@ class HeadlessBrowserManager {
    */
   async closeBrowser() {
     if (this.browser) {
-      await this.browser.close();
+      await this.browser.close().catch(() => {});
       this.browser = null;
     }
   }

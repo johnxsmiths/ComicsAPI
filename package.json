@@ -16,26 +16,25 @@
     "scraper",
     "manga",
     "comic",
-    "cheerio",
-    "puppeteer"
+    "cheerio"
   ],
   "author": "Backend Architecture Team",
   "license": "MIT",
   "dependencies": {
-    "@sparticuz/chromium": "^123.0.0",
     "axios": "^1.6.8",
     "axios-cookiejar-support": "^5.0.0",
     "cheerio": "^1.0.0-rc.12",
     "joi": "^17.12.2",
     "p-limit": "^5.0.0",
-    "puppeteer-core": "^22.6.0",
-    "tough-cookie": "^4.1.3",
-    "wrangler": "^3.114.0"
+    "tough-cookie": "^4.1.3"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "^123.0.0",
+    "puppeteer-core": "^22.6.0",
     "nodemon": "^3.1.0",
     "serverless": "^3.38.0",
-    "serverless-offline": "^13.3.3"
+    "serverless-offline": "^13.3.3",
+    "wrangler": "^3.114.0"
   },
   "engines": {
     "node": ">=20.0.0"
