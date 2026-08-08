@@ -4,11 +4,21 @@ An enterprise-grade, production-ready Serverless Node.js REST API ecosystem for 
 
 ---
 
+## ⚡ 1-Click One-Touch Cloud Deployments
+
+Deploy this API directly to your Cloudflare, Vercel, or Netlify account in 1-click:
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/johnxsmiths/ComicsAPI)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/johnxsmiths/ComicsAPI)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/johnxsmiths/ComicsAPI)
+
+---
+
 ## ⚡ Features
 
 - 🚀 **23+ Scraper Providers**: MangaDex, Comick, Asura Scans, MangaPark, MangaNato, MangaPill, WeebCentral, MangaTaro, Comix, MangaKatana, VortexScans, MangaTown, MangaHere, LikeManga, MangaFire, MangaDot, MangaBall, Atsumaru, RawOtaku, Scans.gg, VyManga, LinkManga, MangaGo.
 - 🛡️ **Cloudflare & Anti-Bot Bypass**: `axios-cookiejar-support` + `tough-cookie` session persistence and Puppeteer + `@sparticuz/chromium` headless fallback.
-- 🖼️ **wsrv.nl Image Cache & CORS Bypass**: Automatic image optimization and WebP conversion via `https://wsrv.nl` edge network (300+ datacenters).
+- 🖼️ **wsrv.nl Image Cache & CORS Bypass**: Automatic image optimization and WebP conversion via `https://wsrv.nl` edge network (300+ global datacenters).
 - 📖 **Multi-Format Reader Payloads**: Dynamic format detection (`images`, `pdf`, `epub`) for seamless mobile reader app integration (Flutter / React Native).
 - ⚡ **Stream Batch Downloader**: Concurrency-limited streaming batch downloader (`p-limit`) with exponential backoff retries and quality options.
 - 📑 **Interactive Swagger UI**: Real-time OpenAPI 3.0 documentation served at `/docs`.
@@ -22,6 +32,7 @@ An enterprise-grade, production-ready Serverless Node.js REST API ecosystem for 
 .
 ├── package.json                              # ES Module configuration & dependencies
 ├── serverless.yml                            # AWS Lambda + API Gateway framework definition
+├── wrangler.toml                             # Cloudflare Workers / Pages deployment config
 ├── vercel.json                               # Vercel Serverless deployment config
 ├── netlify.toml                              # Netlify Functions deployment config
 ├── test.js                                   # Primary E2E test suite
@@ -42,7 +53,7 @@ An enterprise-grade, production-ready Serverless Node.js REST API ecosystem for 
     │   ├── batchDownloader.js                # Concurrency-limited streaming batch downloader
     │   └── httpResponse.js                   # Standardized JSON response & CORS builder
     └── handlers/
-        ├── api.js                            # AWS Lambda entry handlers
+        ├── api.js                            # AWS Lambda / Edge entry handlers
         └── swagger.js                        # Swagger UI HTML & OpenAPI 3.0 JSON spec
 ```
 
@@ -54,7 +65,6 @@ An enterprise-grade, production-ready Serverless Node.js REST API ecosystem for 
 ```http
 GET /api/scrape/providers
 ```
-Returns list of all 23 active scraper providers with capability metadata.
 
 ### 2. Search Manga
 ```http
@@ -74,117 +84,67 @@ GET /api/scrape/info?id=hellogin-00dcbf97&provider=asurascans
 ```http
 GET /api/scrape/pages?id=hellogin-00dcbf97&chapterId=hellogin-00dcbf97/chapter/64&provider=asurascans
 ```
-**Response Contract (`format: 'images' | 'pdf' | 'epub'`)**:
-```json
-{
-  "success": true,
-  "data": {
-    "siteId": "asurascans",
-    "mangaId": "hellogin-00dcbf97",
-    "chapterId": "hellogin-00dcbf97/chapter/64",
-    "chapterNumber": "64",
-    "format": "images",
-    "downloadUrl": null,
-    "totalPages": 24,
-    "pages": [
-      {
-        "page": 1,
-        "url": "https://wsrv.nl/?url=https%3A%2F%2Fcdn.asurascans.com%2F...&q=80&output=webp"
-      }
-    ]
-  }
-}
-```
 
 ### 5. On-the-Fly Image Proxy (CORS & Hotlink Bypass)
 ```http
 GET /api/proxy/image?url=https://example.com/cover.jpg&w=300&q=80&output=webp
-```
-Redirects (302) to `wsrv.nl` edge CDN with long-term browser cache headers.
-
-### 6. Batch Image Downloader
-```http
-POST /download/batch
-Content-Type: application/json
-
-{
-  "images": [
-    { "id": "p1", "url": "https://uploads.mangadex.org/covers/..." }
-  ],
-  "options": {
-    "quality": 80,
-    "format": "webp",
-    "concurrency": 5
-  }
-}
 ```
 
 ---
 
 ## 🛠️ Local Development
 
-### 1. Install Dependencies
 ```bash
+# Install dependencies
 npm install
-```
 
-### 2. Start Dev Mode with Auto-Reload (Nodemon)
-```bash
+# Start Dev Mode with auto-reload (Nodemon)
 npm run dev
-```
 
-### 3. Run End-to-End Test Suite
-```bash
+# Run End-to-End verification test
 node test.js
 ```
 
 ---
 
-## 🚀 Deployment Options
+## 🚀 Cloud Deployment Options
 
-### Option A: AWS Lambda (Serverless Framework)
+### Option A: Cloudflare Workers / Pages (*1-Click Deploy*)
+
+1. **Via Cloudflare Deploy Button**: Click the [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/johnxsmiths/ComicsAPI) button above.
+2. **Via Wrangler CLI**:
+   ```bash
+   npx wrangler deploy
+   ```
+
+---
+
+### Option B: Vercel
+
+1. Click the [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/johnxsmiths/ComicsAPI) button above or run:
+   ```bash
+   npx vercel
+   ```
+
+---
+
+### Option C: Netlify
+
+1. Click the [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/johnxsmiths/ComicsAPI) button above or run:
+   ```bash
+   npx netlify deploy --build
+   ```
+
+---
+
+### Option D: AWS Lambda (Serverless Framework)
+
 ```bash
 npm run deploy
 ```
-Deployed endpoints will automatically map via API Gateway.
-
----
-
-### Option B: Deploying to Vercel
-
-1. Install Vercel CLI:
-   ```bash
-   npm i -g vercel
-   ```
-2. Connect & Deploy:
-   ```bash
-   vercel
-   ```
-   *Vercel will detect `vercel.json` and deploy Serverless functions automatically.*
-
----
-
-### Option C: Deploying to Netlify
-
-1. Install Netlify CLI:
-   ```bash
-   npm i -g netlify-cli
-   ```
-2. Connect & Deploy:
-   ```bash
-   netlify deploy --build
-   ```
-   *Netlify Functions will deploy using `netlify.toml`.*
-
----
-
-### Option D: Cloudflare Pages / Workers
-
-1. Ensure image requests pass through `/api/proxy/image` to utilize **wsrv.nl**'s 300+ global Cloudflare datacenters.
-2. Deploy backend functions via Cloudflare Pages / Wrangler.
 
 ---
 
 ## 📄 License
 
-MIT License - Open Source for Developers & Mobile App Builders.
+MIT License - Open Source.

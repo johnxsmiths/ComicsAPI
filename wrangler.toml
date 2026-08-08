@@ -1,0 +1,10 @@
+name = "comics-manga-scraper-api"
+main = "src/handlers/api.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+[site]
+  bucket = "./public"
+
+[env.production]
+  name = "comics-manga-scraper-api"
