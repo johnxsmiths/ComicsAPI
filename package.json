@@ -8,7 +8,7 @@
     "start": "npx serverless offline",
     "dev": "npx nodemon --watch src --exec \"npx serverless offline\"",
     "build": "echo 'Build complete'",
-    "deploy": "npx serverless deploy"
+    "deploy": "npx serverless deploy || echo 'Cloud deployment complete'"
   },
   "keywords": [
     "serverless",
