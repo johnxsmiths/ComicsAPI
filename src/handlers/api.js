@@ -1,6 +1,7 @@
 import { mangaController } from '../components/manga/manga.controller.js';
 import { HttpResponse } from '../utils/httpResponse.js';
 import { ImageProxy } from '../utils/imageProxy.js';
+import { swaggerUiHtml, openApiJson } from './swagger.js';
 
 /**
  * Helper to safely extract JSON body payload from API Gateway event.
@@ -116,5 +117,79 @@ export const proxyImage = async (event) => {
     return ImageProxy.handleProxyRequest(queryParams);
   } catch (err) {
     return HttpResponse.error(500, 'Server Error in Image Proxy Handler', err.message);
+  }
+};
+
+/**
+ * Cloudflare Worker / ES Module Default Export Handler
+ */
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const method = request.method.toUpperCase();
+
+    const queryParams = {};
+    url.searchParams.forEach((v, k) => { queryParams[k] = v; });
+
+    try {
+      if (path === '/docs') {
+        const res = await swaggerUiHtml();
+        return new Response(res.body, { status: res.statusCode, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': '*' } });
+      }
+      if (path === '/docs/openapi.json') {
+        const res = await openApiJson();
+        return new Response(res.body, { status: res.statusCode, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+      }
+      if (path === '/proxy/image' || path === '/api/proxy/image') {
+        const res = ImageProxy.handleProxyRequest(queryParams);
+        return new Response('', { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/api/scrape/providers') {
+        const res = mangaController.handleGetProviders();
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/api/scrape/search') {
+        const res = await mangaController.handleScrapeSearch(queryParams);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/api/scrape/info') {
+        const res = await mangaController.handleScrapeInfo(queryParams);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/api/scrape/chapters') {
+        const res = await mangaController.handleScrapeChapters(queryParams);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/api/scrape/pages') {
+        const res = await mangaController.handleScrapePages(queryParams);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path === '/search') {
+        const res = await mangaController.handleSearch(queryParams);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+      if (path.startsWith('/manga/')) {
+        const parts = path.split('/').filter(Boolean);
+        if (parts.length >= 3 && parts[2] === 'chapter') {
+          const res = await mangaController.handleGetChapterPages({ siteId: parts[0], mangaId: parts[1], chapterId: parts[3] });
+          return new Response(res.body, { status: res.statusCode, headers: res.headers });
+        } else if (parts.length >= 2) {
+          const res = await mangaController.handleGetDetails({ siteId: parts[0], mangaId: parts[1] });
+          return new Response(res.body, { status: res.statusCode, headers: res.headers });
+        }
+      }
+      if (path === '/download/batch' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const res = await mangaController.handleBatchDownload(body);
+        return new Response(res.body, { status: res.statusCode, headers: res.headers });
+      }
+
+      const defaultRes = mangaController.handleGetProviders();
+      return new Response(defaultRes.body, { status: defaultRes.statusCode, headers: defaultRes.headers });
+    } catch (err) {
+      const errorRes = HttpResponse.error(500, 'Cloudflare Worker Error', err.message);
+      return new Response(errorRes.body, { status: 500, headers: errorRes.headers });
+    }
   }
 };
