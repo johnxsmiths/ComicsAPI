@@ -1,10 +1,7 @@
 name = "comicsapi"
-main = "src/handlers/api.js"
+pages_build_output_dir = "public"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat" ]
-
-[build]
-  command = "npm run build"
 
 [vars]
   NODE_ENV = "production"
@@ -12,9 +9,3 @@ compatibility_flags = [ "nodejs_compat" ]
 [define]
   "__dirname" = "''"
   "__filename" = "''"
-
-[site]
-  bucket = "./public"
-
-[env.production]
-  name = "comicsapi"
