@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/scrape/(.*)", "destination": "/src/handlers/api.js" },
+    { "source": "/api/proxy/image", "destination": "/src/handlers/api.js" },
+    { "source": "/docs/(.*)", "destination": "/src/handlers/swagger.js" },
+    { "source": "/docs", "destination": "/src/handlers/swagger.js" },
+    { "source": "/(.*)", "destination": "/src/handlers/api.js" }
+  ]
+}

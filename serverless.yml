@@ -1,0 +1,129 @@
+service: comics-manga-scraper-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  memorySize: 1024
+  timeout: 30
+  httpApi:
+    cors: true
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    MAX_CONCURRENCY: '5'
+    HTTP_TIMEOUT_MS: '15000'
+
+functions:
+  # MangaScrapeAPI Compatibility Endpoints (/api/scrape/*)
+  getProviders:
+    handler: src/handlers/api.getProviders
+    description: List all available scraper providers
+    events:
+      - httpApi:
+          path: /api/scrape/providers
+          method: get
+
+  scrapeSearch:
+    handler: src/handlers/api.scrapeSearch
+    description: Search manga by title and provider
+    events:
+      - httpApi:
+          path: /api/scrape/search
+          method: get
+
+  scrapeInfo:
+    handler: src/handlers/api.scrapeInfo
+    description: Get manga details by ID and provider
+    events:
+      - httpApi:
+          path: /api/scrape/info
+          method: get
+
+  scrapeChapters:
+    handler: src/handlers/api.scrapeChapters
+    description: Get manga chapter list by ID and provider
+    events:
+      - httpApi:
+          path: /api/scrape/chapters
+          method: get
+
+  scrapePages:
+    handler: src/handlers/api.scrapePages
+    description: Get chapter page images/pdf/epub content
+    events:
+      - httpApi:
+          path: /api/scrape/pages
+          method: get
+
+  apiProxyImage:
+    handler: src/handlers/api.proxyImage
+    description: Image CORS and Cloudflare bypass proxy via wsrv.nl
+    events:
+      - httpApi:
+          path: /api/proxy/image
+          method: get
+
+  # Standard REST Component Endpoints
+  search:
+    handler: src/handlers/api.search
+    description: Parallel search across specified manga/comic site registries
+    events:
+      - httpApi:
+          path: /search
+          method: get
+
+  getDetails:
+    handler: src/handlers/api.getDetails
+    description: Fetch deep metadata for a manga
+    events:
+      - httpApi:
+          path: /manga/{siteId}/{mangaId}
+          method: get
+
+  getChapterPages:
+    handler: src/handlers/api.getChapterPages
+    description: Retrieve all reading page image URLs for a specific chapter
+    events:
+      - httpApi:
+          path: /manga/{siteId}/{mangaId}/chapter/{chapterId}
+          method: get
+
+  batchDownload:
+    handler: src/handlers/api.batchDownload
+    description: High-performance streaming batch image downloader
+    memorySize: 2048
+    timeout: 60
+    events:
+      - httpApi:
+          path: /download/batch
+          method: post
+
+  proxyImage:
+    handler: src/handlers/api.proxyImage
+    description: On-the-fly image cache and resize proxy via wsrv.nl
+    events:
+      - httpApi:
+          path: /proxy/image
+          method: get
+
+  swaggerUiHtml:
+    handler: src/handlers/swagger.swaggerUiHtml
+    description: Interactive Swagger UI API documentation dashboard
+    events:
+      - httpApi:
+          path: /docs
+          method: get
+
+  swaggerUiJson:
+    handler: src/handlers/swagger.openApiJson
+    description: OpenAPI 3.0 specification JSON schema definition
+    events:
+      - httpApi:
+          path: /docs/openapi.json
+          method: get
+
+plugins:
+  - serverless-offline

@@ -1,0 +1,17 @@
+[build]
+  functions = "src/handlers"
+
+[[redirects]]
+  from = "/api/scrape/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/docs"
+  to = "/.netlify/functions/swagger"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/api"
+  status = 200
