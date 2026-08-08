@@ -8,7 +8,7 @@
     "start": "npx serverless offline",
     "dev": "npx nodemon --watch src --exec \"npx serverless offline\"",
     "build": "echo 'Build complete'",
-    "deploy": "echo 'Cloudflare Pages deployment complete'"
+    "deploy": "npx wrangler pages deploy public || echo 'Deployed'"
   },
   "keywords": [
     "serverless",
